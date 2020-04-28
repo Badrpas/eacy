@@ -42,18 +42,18 @@ function isViablePath (path = '') {
   return REGISTERED_RE.some(re => path.match(re));
 }
 
+export const asArray = (x: any) => x instanceof Array ? x : [x];
+
 export function getModuleList (context: RequireContext): Array<string> {
   return context.keys().filter(key => {
     if (!isViablePath(key)) return false;
 
     const m = context(key);
     return !(IGNORE_KEY in m)
-    //TODO enable it later
-    // && !Object.values(m).some(x => x === IGNORE_MARK);
+      && !Object.values(m).some(x => x === IGNORE_MARK);
   });
 }
 
-export const asArray = (x: any) => x instanceof Array ? x : [x];
 
 export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
   let lastModules: Array<string> = [];
