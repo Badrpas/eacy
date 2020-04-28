@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "sourceRoot": "src",
+    "outDir": "dist/lib",
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "target": "ES2019",
+    "strict": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": false,
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./**/*.spec.*"
+  ]
+}

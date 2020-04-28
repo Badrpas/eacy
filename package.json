@@ -1,0 +1,19 @@
+{
+  "name": "eacy",
+  "version": "0.1.0",
+  "description": "WebGL framework based on `eaciest` (ECS) and Webpack",
+  "license": "MIT",
+  "main": "dist/lib/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.150",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "acorn": "^6.2.1"
+  }
+}
