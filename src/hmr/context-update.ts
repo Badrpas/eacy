@@ -32,7 +32,6 @@ export type TOptions = {
   removeOld: TRemoveOldFn
 };
 
-
 const REGISTERED_RE = [
   /\.js$/,
   /\.ts$/

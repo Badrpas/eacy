@@ -17,5 +17,3 @@ export enum EDirTypeContent {
 export function setupContentPath(engine: Engine, type: EDirTypeContent, path: string) {
   throw new Error('Eacy plugin is not enabled.');
 }
-
-
