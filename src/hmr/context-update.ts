@@ -23,6 +23,9 @@ type IEngineAddResults = Array<IEntity | System>;
 interface TResultsMap {
   [key: string]: IEngineAddResults
 }
+interface TResultsAsyncMap {
+  [key: string]: Promise<IEngineAddResults>
+}
 type TCacheData = {
   moduleData: IModuleData
   addResults: TResultsMap
@@ -41,7 +44,7 @@ function isViablePath (path = '') {
   return REGISTERED_RE.some(re => path.match(re));
 }
 
-export const asArray = (x: any) => x instanceof Array ? x : [x];
+export const asArray = (x: any): Array<any> => x instanceof Array ? x : [x];
 
 export function getModuleList (context: RequireContext): Array<string> {
   return context.keys().filter(key => {
@@ -58,16 +61,24 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
   let lastModules: Array<string> = [];
   const cache = new Map<TPath, TCacheData>();
 
-  const loadModule = (engine: Engine, context: RequireContext, path: TPath) => {
+  const loadModule = async (engine: Engine, context: RequireContext, path: TPath) => {
     const moduleData = context(path);
 
     if (cleanModule(removeOld, engine, path, moduleData)) {
       return; // module didn't change
     }
 
-    const addResults: TResultsMap = mapValues(moduleData, (rawData) => {
-      return asArray(rawData).map(data => engine.add(data));
+    const addResultsAsync: TResultsAsyncMap = mapValues(moduleData, async (rawData) => {
+      return asArray(await rawData).map(engine.add);
     });
+
+    const addResults = await Promise.all(
+      Object
+        .entries(addResultsAsync)
+        .map(async ([key, promisedValue]) => {
+          return [key, await promisedValue];
+        })
+    ).then(Object.fromEntries);
 
     cache.set(path, {
       moduleData,
