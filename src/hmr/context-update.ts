@@ -1,5 +1,4 @@
-import { mapValues } from 'lodash';
-import { difference } from 'lodash';
+import { mapValues, difference, pick, isEqual } from 'lodash';
 import { Engine, System, IEntity } from 'eaciest';
 
 
@@ -50,19 +49,25 @@ export function getModuleList (context: RequireContext): Array<string> {
   return context.keys().filter(key => {
     if (!isViablePath(key)) return false;
 
-    const m = context(key);
-    return !(IGNORE_KEY in m)
-      && !Object.values(m).some(x => x === IGNORE_MARK);
+    try {
+      const m = context(key);
+      return !(IGNORE_KEY in m)
+        && !Object.values(m).some(x => x === IGNORE_MARK);
+    } catch (err) {
+      console.warn('Error while loading ' + key);
+      console.warn(err);
+      return false;
+    }
   });
 }
-
 
 export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
   let lastModules: Array<string> = [];
   const cache = new Map<TPath, TCacheData>();
 
   const loadModule = async (engine: Engine, context: RequireContext, path: TPath) => {
-    const moduleData = context(path);
+    const module = context(path);
+    const moduleData = pick(module, 'default');
 
     if (cleanModule(removeOld, engine, path, moduleData)) {
       return; // module didn't change
@@ -95,7 +100,7 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
         addResults: oldAddResults,
       } = cached;
 
-      if (oldModuleData === moduleData) {
+      if (isEqual(oldModuleData, moduleData)) {
         return true;
       }
 

@@ -10,7 +10,7 @@ function saveToCache(msg) {
 if (typeof localStorage !== 'undefined') {
   const msg = localStorage.getItem('lastLog');
   if (msg) {
-    console.warn('Last message before reload:', msg);
+    console.warn('Last message before reload:\n', msg);
     localStorage.removeItem('lastLog');
   }
 }
