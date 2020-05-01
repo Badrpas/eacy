@@ -18,16 +18,17 @@ interface RequireContext {
   id: string;
 }
 type TPath = string;
-type IEngineAddResults = Array<IEntity | System>;
-interface TResultsMap {
-  [key: string]: IEngineAddResults
+type TAddVariant = IEntity | System;
+type TEngineAddResults = Array<TAddVariant | Promise<TAddVariant>>;
+interface IResultsMap {
+  [key: string]: TEngineAddResults
 }
-interface TResultsAsyncMap {
-  [key: string]: Promise<IEngineAddResults>
+interface IResultsAsyncMap {
+  [key: string]: Promise<TEngineAddResults>
 }
 type TCacheData = {
   moduleData: IModuleData
-  addResults: TResultsMap
+  addResults: IResultsMap
 };
 export type TRemoveOldFn = (old: any, engine: Engine) => any;
 export type TOptions = {
@@ -73,8 +74,11 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
       return; // module didn't change
     }
 
-    const addResultsAsync: TResultsAsyncMap = mapValues(moduleData, async (rawData) => {
-      return asArray(await rawData).map(engine.add);
+    const addResultsAsync: IResultsAsyncMap = mapValues(moduleData, async (rawData): Promise<Array<Promise<TAddVariant>>> => {
+      return asArray(await rawData)
+              .map(async data => {
+                return engine.add(await data);
+              });
     });
 
     const addResults = await Promise.all(
@@ -83,7 +87,10 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
         .map(async ([key, promisedValue]) => {
           return [key, await promisedValue];
         })
-    ).then(Object.fromEntries);
+    ).then(pairs => Promise.all(pairs.map(async ([key, promises]) => {
+      // @ts-ignore
+      return [key, await Promise.all(promises)];
+    }))).then(Object.fromEntries);
 
     cache.set(path, {
       moduleData,
