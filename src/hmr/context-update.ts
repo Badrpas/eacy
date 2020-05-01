@@ -5,6 +5,8 @@ import { Engine, System, IEntity } from 'eaciest';
 const IGNORE_KEY = '__ignore__';
 export const IGNORE_MARK = Symbol.for('Eacy ignore file mark');
 
+export const IMPORTED_FROM = Symbol.for('File which produced this entity');
+
 interface IModuleData {
   [IGNORE_KEY]?: any
   [key: string]: any
@@ -91,6 +93,13 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
       // @ts-ignore
       return [key, await Promise.all(promises)];
     }))).then(Object.fromEntries);
+
+    for (const value of Object.values(addResults)) {
+      // @ts-ignore
+      for (const data of value) {
+        data[IMPORTED_FROM] = path;
+      }
+    }
 
     cache.set(path, {
       moduleData,
