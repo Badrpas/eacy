@@ -6,6 +6,7 @@ const IGNORE_KEY = '__ignore__';
 export const IGNORE_MARK = Symbol.for('Eacy ignore file mark');
 
 export const IMPORTED_FROM = Symbol.for('File which produced this entity');
+const CLEANUP_KEY = '__ON_CLEANUP';
 
 interface IModuleData {
   [IGNORE_KEY]?: any
@@ -20,7 +21,7 @@ interface RequireContext {
   id: string;
 }
 type TPath = string;
-type TAddVariant = IEntity | System;
+type TAddVariant = IEntity | System | Array<IEntity | System>;
 type TEngineAddResults = Array<TAddVariant | Promise<TAddVariant>>;
 interface IResultsMap {
   [key: string]: TEngineAddResults
@@ -30,7 +31,8 @@ interface IResultsAsyncMap {
 }
 type TCacheData = {
   moduleData: IModuleData
-  addResults: IResultsMap
+  addResults: IResultsMap,
+  onCleanupFn?: Function
 };
 export type TRemoveOldFn = (old: any, engine: Engine) => any;
 export type TOptions = {
@@ -48,8 +50,9 @@ function isViablePath (path = '') {
 
 export const asArray = (x: any): Array<any> => x instanceof Array ? x : [x];
 
-export function getModuleList (context: RequireContext): Array<string> {
-  return context.keys().filter(key => {
+function getModuleList (context: RequireContext): { accepted: Array<string>, errored: Array<string> } {
+  const errored: Array<string> = [];
+  const accepted = context.keys().filter(key => {
     if (!isViablePath(key)) return false;
 
     try {
@@ -59,9 +62,15 @@ export function getModuleList (context: RequireContext): Array<string> {
     } catch (err) {
       console.warn('Error while loading ' + key);
       console.warn(err);
+      errored.push(key);
       return false;
     }
   });
+
+  return {
+    accepted,
+    errored,
+  };
 }
 
 export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
@@ -71,6 +80,7 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
   const loadModule = async (engine: Engine, context: RequireContext, path: TPath) => {
     const module = context(path);
     const moduleData = pick(module, 'default');
+    const { [CLEANUP_KEY]: onCleanupFn } = module;
 
     if (cleanModule(removeOld, engine, path, moduleData)) {
       return; // module didn't change
@@ -79,7 +89,7 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
     const addResultsAsync: IResultsAsyncMap = mapValues(moduleData, async (rawData): Promise<Array<Promise<TAddVariant>>> => {
       return asArray(await rawData)
               .map(async data => {
-                return engine.add(await data);
+                return (await engine.add(await data));
               });
     });
 
@@ -103,7 +113,8 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
 
     cache.set(path, {
       moduleData,
-      addResults
+      addResults,
+      onCleanupFn
     });
   };
 
@@ -114,12 +125,15 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
       const {
         moduleData: oldModuleData,
         addResults: oldAddResults,
+        onCleanupFn,
       } = cached;
 
       if (isEqual(oldModuleData, moduleData)) {
         return true;
       }
-
+      if (typeof onCleanupFn === 'function') {
+        onCleanupFn(oldAddResults);
+      }
       for (const list of Object.values(oldAddResults)) {
         for (const old of list) {
           removeOld(old, engine);
@@ -129,17 +143,21 @@ export const createContextUpdateHandler = ({ removeOld }: TOptions) => {
   }
 
   return function updateModules (engine: Engine, context: RequireContext) {
-    const moduleList = getModuleList(context);
+    const {
+      accepted,
+      errored
+    } = getModuleList(context);
+    const updated = [...accepted, ...errored];
 
-    for (const module of moduleList) {
+    for (const module of accepted) {
       loadModule(engine, context, module);
     }
 
-    const disbandedModules = difference(lastModules, moduleList);
+    const disbandedModules = difference(lastModules, updated);
     for (const path of disbandedModules) {
       cleanModule(removeOld, engine, path);
     }
 
-    lastModules = moduleList;
+    lastModules = updated;
   };
 };
