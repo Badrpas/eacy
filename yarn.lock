@@ -162,7 +162,7 @@
   resolved "https://registry.yarnpkg.com/@xtuc/long/-/long-4.2.2.tgz#d291c6a4e97989b5c61d9acf396ae4fe133a718d"
   integrity sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==
 
-acorn@^6.2.1, acorn@^6.4.1:
+acorn@^6.4.1:
   version "6.4.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.4.1.tgz#531e58ba3f51b9dacb9a6646ca4debf5b14ca474"
   integrity sha512-ZVA9k326Nwrj3Cj9jlh3wGFutC2ZornPNARZwsNYqQYgN0EsV2d53w5RN/co65Ohn4sUAUtb1rSUAOD6XN9idA==
@@ -768,6 +768,13 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
+
+eaciest@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/eaciest/-/eaciest-0.1.2.tgz#a1447e2be4a7a0704322921a4f6f4409efc8a02e"
+  integrity sha512-wAuw4xWIHfyeSFqelJk/6DNS8nc4cGp+2nkmFpNW+n5h/to95cHxnGm17VI6MiASksTioyyj1DD1qy84uCy/sw==
+  dependencies:
+    typescript "^3.8.3"
 
 elliptic@^6.0.0, elliptic@^6.5.2:
   version "6.5.2"
