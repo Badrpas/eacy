@@ -1,13 +1,19 @@
 {
   "name": "eacy",
   "version": "0.1.0",
-  "description": "WebGL framework based on `eaciest` (ECS) and Webpack",
+  "description": "Helper package for `eaciest`",
   "license": "MIT",
+  "homepage": "https://github.com/Badrpas/eacy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Badrpas/eacy.git"
+  },
   "main": "dist/lib/index.js",
   "loader": "lib/loader.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
-    "dev": "webpack --watch"
+    "dev": "webpack --watch",
+    "prepare": "tsc"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.150",
